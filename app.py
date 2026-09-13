@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 from datetime import datetime, timezone
 from urllib.parse import urlparse
@@ -12,7 +13,7 @@ from scanner.headers import analyze_headers
 from scanner.risk_score import calculate_score
 
 app = Flask(__name__)
-DB = "webguard.db"
+DB = os.getenv("WEBGUARD_DB", "webguard.db")
 TIMEOUT = 8
 
 
@@ -40,6 +41,8 @@ def validate_target(target):
     parsed = urlparse(target)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise ValueError("Enter a complete HTTP or HTTPS URL.")
+    if parsed.username or parsed.password:
+        raise ValueError("Credentials in URLs are not supported.")
     return target.rstrip("/")
 
 
@@ -80,6 +83,7 @@ def perform_scan(target):
 
 @app.route("/")
 def index():
+    init_db()
     conn = db()
     scans = conn.execute("SELECT * FROM scans ORDER BY id DESC LIMIT 10").fetchall()
     conn.close()
@@ -91,6 +95,7 @@ def scan():
     target = request.form.get("target", "").strip()
     try:
         result = perform_scan(target)
+        init_db()
         conn = db()
         conn.execute(
             "INSERT INTO scans(target, score, level, findings, created_at) VALUES (?, ?, ?, ?, ?)",
@@ -100,17 +105,23 @@ def scan():
         conn.close()
         return render_template("report.html", result=result)
     except (requests.RequestException, ValueError) as exc:
-        return render_template("index.html", scans=[], error=str(exc)), 400
+        init_db()
+        conn = db()
+        scans = conn.execute("SELECT * FROM scans ORDER BY id DESC LIMIT 10").fetchall()
+        conn.close()
+        return render_template("index.html", scans=scans, error=str(exc)), 400
 
 
 @app.get("/api/scans")
 def api_scans():
+    init_db()
     conn = db()
     rows = conn.execute("SELECT * FROM scans ORDER BY id DESC LIMIT 20").fetchall()
     conn.close()
     return jsonify([dict(row) for row in rows])
 
 
+init_db()
+
 if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=False)
