@@ -1,6 +1,6 @@
 # 🛡️ WebGuard
 
-A defensive, resume-ready web application security assessment dashboard built with Python and Flask.
+A defensive,  web application security assessment dashboard built with Python and Flask.
 
 ## Features
 
