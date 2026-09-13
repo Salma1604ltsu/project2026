@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}WebGuard Dashboard{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><p class="eyebrow">WEB APPLICATION SECURITY</p><h1>Scan. Understand. Secure.</h1><p>Assess security configuration of applications you own or are authorized to test.</p></div>
+</section>
+<section class="card">
+  <h2>Start a security assessment</h2>
+  {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+  <form action="/scan" method="post">
+    <label for="target">Target URL</label>
+    <div class="scan-row"><input id="target" name="target" type="url" placeholder="https://example.com" required><button type="submit">Run Scan</button></div>
+    <small>Recommended for localhost, staging, CTF/lab systems, or explicitly authorized applications.</small>
+  </form>
+</section>
+<section class="card"><h2>Recent scans</h2>
+{% if scans %}<div class="table-wrap"><table><thead><tr><th>Target</th><th>Score</th><th>Risk</th><th>Time</th></tr></thead><tbody>
+{% for scan in scans %}<tr><td>{{ scan['target'] }}</td><td>{{ scan['score'] }}/100</td><td><span class="badge">{{ scan['level'] }}</span></td><td>{{ scan['created_at'] }}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<p class="muted">No scans yet. Run your first assessment above.</p>{% endif %}
+</section>
+{% endblock %}
