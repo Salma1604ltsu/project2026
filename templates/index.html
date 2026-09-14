@@ -1,19 +1,24 @@
 {% extends "base.html" %}
-{% block title %}WebGuard Dashboard{% endblock %}
+{% block title %}WebGuard 2.0 — Security Dashboard{% endblock %}
 {% block content %}
 <section class="hero">
-  <div><p class="eyebrow">WEB APPLICATION SECURITY</p><h1>Scan. Understand. Secure.</h1><p>Assess security configuration of applications you own or are authorized to test.</p></div>
+  <div><p class="eyebrow">WEBGUARD 2.0 • WEB APPLICATION SECURITY</p><h1>Scan. Understand. Secure.</h1><p>Passive, non-destructive security assessment for applications you own or are explicitly authorized to test.</p></div>
+</section>
+<section class="feature-grid">
+  <div class="mini-card"><strong>01</strong><h3>Configuration</h3><p>Headers, cookies, CORS and transport controls.</p></div>
+  <div class="mini-card"><strong>02</strong><h3>Application signals</h3><p>Password-form transport and mixed-content indicators.</p></div>
+  <div class="mini-card"><strong>03</strong><h3>Risk intelligence</h3><p>Severity-weighted scoring and remediation guidance.</p></div>
 </section>
 <section class="card">
-  <h2>Start a security assessment</h2>
+  <div class="section-heading"><div><p class="eyebrow">NEW SCAN</p><h2>Start a security assessment</h2></div><span class="status-dot">● Protected</span></div>
   {% if error %}<div class="alert">{{ error }}</div>{% endif %}
   <form action="/scan" method="post">
     <label for="target">Target URL</label>
-    <div class="scan-row"><input id="target" name="target" type="url" placeholder="https://example.com" required><button type="submit">Run Scan</button></div>
-    <small>Recommended for localhost, staging, CTF/lab systems, or explicitly authorized applications.</small>
+    <div class="scan-row"><input id="target" name="target" type="url" placeholder="https://your-authorized-app.example" required><button type="submit">Run Scan</button></div>
+    <small>Private/loopback targets are disabled on public deployments. For an authorized local lab, set <code>ALLOW_PRIVATE_TARGETS=1</code>.</small>
   </form>
 </section>
-<section class="card"><h2>Recent scans</h2>
+<section class="card"><div class="section-heading"><div><p class="eyebrow">HISTORY</p><h2>Recent scans</h2></div><a class="button secondary" href="/api/scans">JSON API</a></div>
 {% if scans %}<div class="table-wrap"><table><thead><tr><th>Target</th><th>Score</th><th>Risk</th><th>Time</th></tr></thead><tbody>
 {% for scan in scans %}<tr><td>{{ scan['target'] }}</td><td>{{ scan['score'] }}/100</td><td><span class="badge">{{ scan['level'] }}</span></td><td>{{ scan['created_at'] }}</td></tr>{% endfor %}
 </tbody></table></div>{% else %}<p class="muted">No scans yet. Run your first assessment above.</p>{% endif %}
