@@ -1,9 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Security Report{% endblock %}
+{% block title %}WebGuard Security Report{% endblock %}
 {% block content %}
-<section class="card report-head"><div><p class="eyebrow">SECURITY REPORT</p><h1>{{ result.target }}</h1><p>HTTP {{ result.status_code }} → {{ result.final_url }}</p></div><div class="score"><strong>{{ result.score }}</strong><span>/ 100</span><b>{{ result.level }}</b></div></section>
-<section class="card"><h2>Findings ({{ result.findings|length }})</h2>
-{% if result.findings %}{% for f in result.findings %}<article class="finding"><div class="finding-top"><h3>{{ f.title }}</h3><span class="badge">{{ f.severity|upper }}</span></div><p>{{ f.description }}</p><p><strong>Recommendation:</strong> {{ f.recommendation }}</p></article>{% endfor %}{% else %}<div class="success">No configured checks produced findings.</div>{% endif %}
+<section class="card report-head"><div><p class="eyebrow">WEBGUARD 2.0 • SECURITY REPORT</p><h1>{{ result.target }}</h1><p>HTTP {{ result.status_code }} → {{ result.final_url }}</p><p class="muted">Scan #{{ result.scan_id if result.scan_id else 'preview' }} • {{ result.scanned_at }}</p></div><div class="score"><strong>{{ result.score }}</strong><span>/ 100</span><b>{{ result.level }}</b></div></section>
+<section class="feature-grid">
+  <div class="mini-card"><strong>{{ result.findings|length }}</strong><h3>Total findings</h3><p>Passive indicators returned by enabled checks.</p></div>
+  <div class="mini-card"><strong>{{ result.response_time_ms }} ms</strong><h3>Response time</h3><p>Time reported by the HTTP client.</p></div>
+  <div class="mini-card"><strong>{{ result.links|length }}</strong><h3>Same-site links</h3><p>Links discovered from the scanned HTML.</p></div>
+</section>
+<section class="card"><h2>Severity summary</h2><div class="feature-grid"><div class="mini-card"><strong>{{ result.counts.critical }}</strong><p>Critical</p></div><div class="mini-card"><strong>{{ result.counts.high }}</strong><p>High</p></div><div class="mini-card"><strong>{{ result.counts.medium }}</strong><p>Medium</p></div></div></section>
+<section class="card"><div class="section-heading"><h2>Findings</h2>{% if result.scan_id %}<a class="button secondary" href="/api/scans/{{ result.scan_id }}">View JSON</a>{% endif %}</div>
+{% if result.findings %}{% for f in result.findings %}<article class="finding"><div class="finding-top"><div><p class="eyebrow">{{ f.category }}</p><h3>{{ f.title }}</h3></div><span class="badge">{{ f.severity|upper }}</span></div><p>{{ f.description }}</p><p><strong>Recommendation:</strong> {{ f.recommendation }}</p></article>{% endfor %}{% else %}<div class="success">No configured checks produced findings.</div>{% endif %}
 </section>
 <section class="card"><h2>Discovered same-site links</h2>{% if result.links %}<ul>{% for link in result.links %}<li>{{ link }}</li>{% endfor %}</ul>{% else %}<p class="muted">No links discovered.</p>{% endif %}</section>
 <a class="button secondary" href="/">← Back to dashboard</a>
