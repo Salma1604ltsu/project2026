@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: webguard
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ALLOW_PRIVATE_TARGETS
+        value: "0"
+      - key: SCAN_TIMEOUT
+        value: "8"
