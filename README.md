@@ -21,6 +21,49 @@ WebGuard is a Python/Flask security assessment dashboard for **authorized** web 
 - Production Gunicorn configuration
 - GitHub Actions CI test workflow
 
+## 🔎 API Security Testing Tool
+
+The repository now includes a separate defensive API assessment module at `api_security_tool/`.
+
+It checks:
+
+- Authentication behavior and unauthenticated exposure
+- Authorization differences between two supplied test principals
+- Security response headers
+- Wildcard CORS
+- Small-sample rate-limit signals
+- Verbose error disclosure
+- JSON/content-type consistency
+
+Example:
+
+```bash
+python -m api_security_tool --url https://api.example.com/v1/users
+```
+
+Authenticated check:
+
+```bash
+python -m api_security_tool --url https://api.example.com/v1/users --token "$API_TOKEN"
+```
+
+Two-principal authorization comparison:
+
+```bash
+python -m api_security_tool \
+  --url https://api.example.com/v1/users/123 \
+  --token-a "$USER_A_TOKEN" \
+  --token-b "$USER_B_TOKEN"
+```
+
+JSON report:
+
+```bash
+python -m api_security_tool --url https://api.example.com/v1/users --json
+```
+
+The API module is deliberately non-destructive. It uses GET/HEAD/OPTIONS only and a small rate-limit sample. Authorization differences are reported as observations for manual validation, not automatically classified as vulnerabilities.
+
 ## 🧱 Architecture
 
 ```text
@@ -29,17 +72,16 @@ Browser
    ▼
 Flask Dashboard ───────► SQLite Scan History
    │
-   ▼
-Safe HTTP Client
+   ├── Web Security Scanner
    │
-   ├── Target validation + DNS/IP safety checks
-   ├── Redirect validation (max 3)
-   └── Passive response analysis
-          ├── Headers
-          ├── Cookies
-          ├── HTML/forms
-          ├── CORS/cache indicators
-          └── Link discovery
+   └── API Security Tool
+          │
+          ├── Target validation + DNS/IP safety checks
+          ├── Authentication checks
+          ├── Authorization comparison
+          ├── Headers / CORS
+          ├── Rate-limit signals
+          └── Error/content-type analysis
 ```
 
 ## 🔐 Safety controls
@@ -48,7 +90,7 @@ WebGuard is deliberately designed as a **defensive assessment tool**, not an exp
 
 For a public deployment, private/loopback/link-local/reserved targets are blocked by default to reduce SSRF risk. Set `ALLOW_PRIVATE_TARGETS=1` **only in a controlled, authorized local lab**.
 
-The `/scan` endpoint is rate-limited to help protect a public deployment from abuse.
+The API tool also blocks state-changing HTTP methods by default.
 
 ## 🛠️ Tech Stack
 
@@ -109,6 +151,12 @@ WebGuard/
 ├── render.yaml
 ├── .env.example
 ├── .gitignore
+├── api_security_tool/
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── cli.py
+│   ├── scanner.py
+│   └── README.md
 ├── scanner/
 │   ├── __init__.py
 │   ├── advanced.py
@@ -123,7 +171,8 @@ WebGuard/
 ├── static/
 │   └── style.css
 ├── tests/
-│   └── test_scanner.py
+│   ├── test_scanner.py
+│   └── test_api_security_tool.py
 └── .github/
     └── workflows/
         └── ci.yml
